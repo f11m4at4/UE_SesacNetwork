@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
 #include "NetPlayerAnimInstance.h"
+#include "MainUI.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -74,6 +75,9 @@ void ANetTPSCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	InitUIWidget();
+
 }
 
 void ANetTPSCharacter::TakePistol(const FInputActionValue& value)
@@ -111,6 +115,7 @@ void ANetTPSCharacter::TakePistol(const FInputActionValue& value)
 		AttachPistol(ownedPistol);
 		break;
 	}
+
 }
 
 void ANetTPSCharacter::AttachPistol(AActor* pistolActor)
@@ -118,6 +123,11 @@ void ANetTPSCharacter::AttachPistol(AActor* pistolActor)
 	auto meshComp = pistolActor->GetComponentByClass<UStaticMeshComponent>();
 	meshComp->SetSimulatePhysics(false);
 	meshComp->AttachToComponent(gunComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+	if (mainUI)
+	{
+		mainUI->ShowCrosshair(true);
+	}
 }
 
 void ANetTPSCharacter::ReleasePistol(const FInputActionValue& value)
@@ -142,12 +152,17 @@ void ANetTPSCharacter::DetachPistol(AActor* pistolActor)
 	auto meshComop = pistolActor->GetComponentByClass<UStaticMeshComponent>();
 	meshComop->SetSimulatePhysics(true);
 	meshComop->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+
+	if (mainUI)
+	{
+		mainUI->ShowCrosshair(false);
+	}
 }
 
 void ANetTPSCharacter::Fire(const FInputActionValue& value)
 {
 	// 총을 소유하고 있지 않다면 처리하지 않는다.
-	if (bHasPistol == false)
+	if (bHasPistol == false || bulletCount <= 0)
 	{
 		return;
 	}
@@ -167,9 +182,31 @@ void ANetTPSCharacter::Fire(const FInputActionValue& value)
 		, gunEffect, hitInfo.Location, FRotator());
 	}
 
+	// 총알 제거
+	bulletCount--;
+	mainUI->PopBullet(bulletCount);
+
 	// 총쏘기 애니메이션 재생
 	auto anim = Cast<UNetPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	anim->PlayFireAnimation();
+}
+
+void ANetTPSCharacter::InitUIWidget()
+{
+	if (mainUIWidget)
+	{
+		mainUI = Cast<UMainUI>(CreateWidget(GetWorld(), mainUIWidget));
+		mainUI->AddToViewport();
+		mainUI->ShowCrosshair(false);
+
+		// 총알 UI 세팅
+		bulletCount = maxBulletCount;
+		// 총알추가
+		for (int i=0;i<maxBulletCount;i++)
+		{
+			mainUI->AddBullet();
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

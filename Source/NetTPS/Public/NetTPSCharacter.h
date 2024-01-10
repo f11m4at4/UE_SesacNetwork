@@ -107,5 +107,21 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Pistol")
 	class UParticleSystem* gunEffect;
+
+// ------- main ui ---------
+public:
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	TSubclassOf<class UMainUI> mainUIWidget;
+	UPROPERTY()
+	class UMainUI* mainUI;
+
+	void InitUIWidget();
+
+public:
+	// 최대 총알개수
+	UPROPERTY(EditAnywhere, Category="Bullet")
+	int32 maxBulletCount = 10;
+	// 남은 총알개수
+	int32 bulletCount = maxBulletCount;
 };
 
