@@ -31,4 +31,15 @@ public:
 public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+public:
+	// ÃÑ½î±â¿¡¼­ »ç¿ëÇÒ ¸ùÅ¸ÁÖ
+	UPROPERTY(EditDefaultsOnly, Category="Anim")
+	class UAnimMontage* fireMontage;
+	// ÃÑ½î±â Àç»ýÇÔ¼ö
+	void PlayFireAnimation();
+
+	// pitch È¸Àü°ª
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="MyAnimSettings")
+	float pitchAngle;
 };

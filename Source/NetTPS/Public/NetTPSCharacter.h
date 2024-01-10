@@ -104,5 +104,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	UInputAction* fireActoin;
 	void Fire(const FInputActionValue& value);
+
+	UPROPERTY(EditDefaultsOnly, Category="Pistol")
+	class UParticleSystem* gunEffect;
 };
 

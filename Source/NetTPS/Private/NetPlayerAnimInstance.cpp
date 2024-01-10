@@ -17,13 +17,25 @@ void UNetPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (player)
 	{
-		bHasPistol = true;
-
 		// player 의 속도를 가져와서
 		FVector velocity = player->GetVelocity();
 		// speed 에 할당하고 싶다.
 		speed = FVector::DotProduct(velocity, player->GetActorForwardVector());
 		// direction 에 할당하고 싶다.
 		direction = FVector::DotProduct(velocity, player->GetActorRightVector());
+
+		// 회전값 적용
+		pitchAngle = -player->GetBaseAimRotation().GetNormalized().Pitch;
+		pitchAngle = FMath::Clamp(pitchAngle, -60, 60);
+
+		bHasPistol = player->bHasPistol;
+	}
+}
+
+void UNetPlayerAnimInstance::PlayFireAnimation()
+{
+	if (bHasPistol && fireMontage)
+	{
+		Montage_Play(fireMontage, 2);
 	}
 }

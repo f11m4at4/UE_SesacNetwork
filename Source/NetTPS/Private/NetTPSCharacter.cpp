@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
+#include "NetPlayerAnimInstance.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -152,7 +153,23 @@ void ANetTPSCharacter::Fire(const FInputActionValue& value)
 	}
 
 	// 총쏘기
+	FHitResult hitInfo;
+	FVector startPos = FollowCamera->GetComponentLocation();
+	FVector endPos = startPos + FollowCamera->GetForwardVector() * 10000;
 
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(this);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);
+	if (bHit)
+	{
+		// 맞은자리에 파티클효과 재생
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld()
+		, gunEffect, hitInfo.Location, FRotator());
+	}
+
+	// 총쏘기 애니메이션 재생
+	auto anim = Cast<UNetPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	anim->PlayFireAnimation();
 }
 
 //////////////////////////////////////////////////////////////////////////
