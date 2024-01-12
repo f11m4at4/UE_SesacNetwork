@@ -42,4 +42,19 @@ public:
 	// pitch 회전값
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="MyAnimSettings")
 	float pitchAngle;
+
+public:
+	// --------- 재장전 -----------
+	UPROPERTY(EditDefaultsOnly, Category="Anim")
+	class UAnimMontage* reloadMontage;
+	// 재장전 애니메이션 재생함수
+	void PlayReloadAnimation();
+	// 재장전 끝났을 때 호출될 Notify 이벤트함수
+	UFUNCTION()
+	void AnimNotify_OnReloadFinish();
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="MyAnimSettings")
+	bool isDead = false;
+
 };

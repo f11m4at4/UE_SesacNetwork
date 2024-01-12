@@ -31,4 +31,11 @@ public:
 	void AddBullet();
 	// 총알제거
 	void PopBullet(int32 index);
+	// 모든 총알UI 제거
+	void RemoveAllAmmo();
+
+public:
+	// -------------- 체력 -------------
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="HP")
+	float hp = 1.0f;
 };

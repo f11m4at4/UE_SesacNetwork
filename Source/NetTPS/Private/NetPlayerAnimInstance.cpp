@@ -29,6 +29,7 @@ void UNetPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		pitchAngle = FMath::Clamp(pitchAngle, -60, 60);
 
 		bHasPistol = player->bHasPistol;
+		isDead = player->isDead;
 	}
 }
 
@@ -38,4 +39,18 @@ void UNetPlayerAnimInstance::PlayFireAnimation()
 	{
 		Montage_Play(fireMontage, 2);
 	}
+}
+
+void UNetPlayerAnimInstance::PlayReloadAnimation()
+{
+	// 총 갖고 있을 때 몽타주 플레이
+	if (bHasPistol && reloadMontage)
+	{
+		Montage_Play(reloadMontage);
+	}
+}
+
+void UNetPlayerAnimInstance::AnimNotify_OnReloadFinish()
+{
+	player->InitAmmoUI();
 }

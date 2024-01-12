@@ -123,5 +123,38 @@ public:
 	int32 maxBulletCount = 10;
 	// 남은 총알개수
 	int32 bulletCount = maxBulletCount;
+
+// --------- 재장전 ---------
+public:
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* reloadActoin;
+	void ReloadPistol(const FInputActionValue& value);
+
+	// 총알 UI 리셋
+	void InitAmmoUI();
+	// 재장전 중인지 여부 기억
+	bool isReloading = false;
+
+public:
+	// --------------- 플레이어 체력 ---------------
+	UPROPERTY(EditDefaultsOnly, Category="HP")
+	float MaxHP = 3;
+	// 현재 체력
+	float hp = MaxHP;
+
+	__declspec(property(get=GetHP, put=SetHP))
+	float HP;
+	float GetHP();
+	void SetHP(float value);
+
+	UPROPERTY(VisibleAnywhere)
+	class UWidgetComponent* hpUIComp;
+
+	// 피격처리함수
+	void DamageProcess();
+
+// ------- 죽음처리 --------
+public:
+	bool isDead = false;
 };
 
