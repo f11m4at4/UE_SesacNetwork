@@ -15,6 +15,7 @@
 #include "MainUI.h"
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/WidgetComponent.h>
 #include "HealthBar.h"
+#include "NetTPS.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -23,6 +24,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 ANetTPSCharacter::ANetTPSCharacter()
 {
+	PrimaryActorTick.bCanEverTick = true;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -287,6 +289,23 @@ void ANetTPSCharacter::DamageProcess()
 	{
 		isDead = true;
 	}
+}
+
+void ANetTPSCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	PrintNetLog();
+}
+
+void ANetTPSCharacter::PrintNetLog()
+{
+	const FString connStr = GetNetConnection() != nullptr ? TEXT("Valid Connection") : TEXT("Invalid Connection");
+	const FString ownerStr = GetOwner() != nullptr ? GetOwner()->GetName() : TEXT("No Owner");
+
+	const FString logStr = FString::Printf(TEXT("Connection : %s\nOwner:%s\nLocal Role:%s\nRemote Role:%s"), *connStr, *ownerStr, *LOCALROLE, *REMOTEROLE);
+	
+	DrawDebugString(GetWorld(), GetActorLocation(), logStr, nullptr, FColor::Yellow, 0, true, 1);
 }
 
 //////////////////////////////////////////////////////////////////////////

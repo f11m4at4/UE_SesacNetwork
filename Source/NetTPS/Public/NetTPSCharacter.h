@@ -156,5 +156,10 @@ public:
 // ------- 죽음처리 --------
 public:
 	bool isDead = false;
+
+public:
+	virtual void Tick( float DeltaSeconds ) override;
+	// 네트워크 로그찍는 함수
+	void PrintNetLog();
 };
 

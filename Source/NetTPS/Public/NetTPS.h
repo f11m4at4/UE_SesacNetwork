@@ -3,3 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#define LOCALROLE (UEnum::GetValueAsString<ENetRole>(GetLocalRole()))
+#define REMOTEROLE (UEnum::GetValueAsString<ENetRole>(GetRemoteRole()))
