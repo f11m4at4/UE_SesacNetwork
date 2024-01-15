@@ -80,6 +80,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	UInputAction* takePistolActoin;
 	// 필요속성 : 총소유여부, 
+	UPROPERTY(Replicated)
 	bool bHasPistol = false;
 	// 잡을 수 있는 범위
 	UPROPERTY(EditAnywhere, Category="Pistol")
@@ -161,5 +162,19 @@ public:
 	virtual void Tick( float DeltaSeconds ) override;
 	// 네트워크 로그찍는 함수
 	void PrintNetLog();
+
+// ----------------- Multiplayer 요소들 -----------------
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerRPCTakePistol();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPCTakePistol(AActor* pistolActor);
+
+	// 총놓기
+	UFUNCTION(Server, Reliable)
+	void ServerRPCReleasePistol();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPCReleasePistol(AActor* pistolActor);
+
 };
 

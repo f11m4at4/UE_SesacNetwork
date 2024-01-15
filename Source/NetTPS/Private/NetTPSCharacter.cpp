@@ -16,6 +16,7 @@
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/WidgetComponent.h>
 #include "HealthBar.h"
 #include "NetTPS.h"
+#include <../../../../../../../Source/Runtime/Engine/Public/Net/UnrealNetwork.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -68,6 +69,10 @@ ANetTPSCharacter::ANetTPSCharacter()
 	// Health component
 	hpUIComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
 	hpUIComp->SetupAttachment(GetMesh());
+
+	// 액터 리플리케이션 사용하겠다.
+	bReplicates = true;
+	SetReplicateMovement(true);
 }
 
 void ANetTPSCharacter::BeginPlay()
@@ -97,33 +102,8 @@ void ANetTPSCharacter::TakePistol(const FInputActionValue& value)
 	{
 		return;
 	}
-	// 2. 총이있어야한다.(월드에서 모두다 찾아오자)
-	TArray<AActor*> allActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), allActors);
-	for (auto tempPistol : allActors)
-	{
-		// 2-1. 총인지 검사해야한다.
-		if (tempPistol->GetName().Contains("BP_Pistol") == false)
-		{
-			continue;
-		}
-		// 3. 총과의 거리를 구해야한다.
-		float distance = FVector::Dist(GetActorLocation(), tempPistol->GetActorLocation());
-		// 4. 일정범위안에 있지 않으면
-		if (distance > distanceToGun)
-		{
-			// 다시돌기
-			continue;
-		}
-		// 5. 총을 소유하고싶다.
-		bHasPistol = true;
-		ownedPistol = tempPistol;
-		ownedPistol->SetOwner(this);
-		// 6. 총을 잡고싶다.
-		AttachPistol(ownedPistol);
-		break;
-	}
-
+	
+	ServerRPCTakePistol();
 }
 
 void ANetTPSCharacter::AttachPistol(AActor* pistolActor)
@@ -145,14 +125,8 @@ void ANetTPSCharacter::ReleasePistol(const FInputActionValue& value)
 	{
 		return;
 	}
-	if (ownedPistol)
-	{
-		DetachPistol(ownedPistol);
-
-		bHasPistol = false;
-		ownedPistol->SetOwner(nullptr);
-		ownedPistol = nullptr;
-	}
+	
+	ServerRPCReleasePistol();
 }
 
 void ANetTPSCharacter::DetachPistol(AActor* pistolActor)
@@ -308,6 +282,61 @@ void ANetTPSCharacter::PrintNetLog()
 	DrawDebugString(GetWorld(), GetActorLocation(), logStr, nullptr, FColor::Yellow, 0, true, 1);
 }
 
+void ANetTPSCharacter::ServerRPCTakePistol_Implementation()
+{
+	// 2. 총이있어야한다.(월드에서 모두다 찾아오자)
+	TArray<AActor*> allActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), allActors);
+	for (auto tempPistol : allActors)
+	{
+		// 2-1. 총인지 검사해야한다.
+		if (tempPistol->GetName().Contains("BP_Pistol") == false)
+		{
+			continue;
+		}
+		// 3. 총과의 거리를 구해야한다.
+		float distance = FVector::Dist(GetActorLocation(), tempPistol->GetActorLocation());
+		// 4. 일정범위안에 있지 않으면
+		if (distance > distanceToGun)
+		{
+			// 다시돌기
+			continue;
+		}
+		// 5. 총을 소유하고싶다.
+		bHasPistol = true;
+		ownedPistol = tempPistol;
+		ownedPistol->SetOwner(this);
+		
+		// 모든 클라이언트한테 전송
+		MultiRPCTakePistol(ownedPistol);
+		break;
+	}
+}
+
+void ANetTPSCharacter::MultiRPCTakePistol_Implementation(AActor* pistolActor)
+{
+	// 6. 총을 잡고싶다.
+	AttachPistol(pistolActor);
+}
+
+void ANetTPSCharacter::ServerRPCReleasePistol_Implementation()
+{
+	if (ownedPistol)
+	{
+		MultiRPCReleasePistol(ownedPistol);
+
+		bHasPistol = false;
+		ownedPistol->SetOwner(nullptr);
+		ownedPistol = nullptr;
+	}
+}
+
+void ANetTPSCharacter::MultiRPCReleasePistol_Implementation(AActor* pistolActor)
+{
+	DetachPistol(pistolActor);
+
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -371,4 +400,11 @@ void ANetTPSCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void ANetTPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const 
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ANetTPSCharacter, bHasPistol);
 }
