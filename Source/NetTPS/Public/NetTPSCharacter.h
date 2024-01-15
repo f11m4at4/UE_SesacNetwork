@@ -176,5 +176,10 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiRPCReleasePistol(AActor* pistolActor);
 
+	// ÃÑ½î±â
+	UFUNCTION(Server, Reliable)
+	void ServerRPCFire();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPCFire(bool bHit, const FHitResult& hitInfo);
 };
 

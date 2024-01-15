@@ -149,35 +149,7 @@ void ANetTPSCharacter::Fire(const FInputActionValue& value)
 		return;
 	}
 
-	// 총쏘기
-	FHitResult hitInfo;
-	FVector startPos = FollowCamera->GetComponentLocation();
-	FVector endPos = startPos + FollowCamera->GetForwardVector() * 10000;
-
-	FCollisionQueryParams params;
-	params.AddIgnoredActor(this);
-	bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);
-	if (bHit)
-	{
-		// 맞은자리에 파티클효과 재생
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld()
-		, gunEffect, hitInfo.Location, FRotator());
-
-		// 맞은 대상이 상대방일 경우 데미지 처리
-		auto otherPlayer = Cast<ANetTPSCharacter>(hitInfo.GetActor());
-		if (otherPlayer)
-		{
-			otherPlayer->DamageProcess();
-		}
-	}
-
-	// 총알 제거
-	bulletCount--;
-	mainUI->PopBullet(bulletCount);
-
-	// 총쏘기 애니메이션 재생
-	auto anim = Cast<UNetPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-	anim->PlayFireAnimation();
+	ServerRPCFire();
 }
 
 void ANetTPSCharacter::InitUIWidget()
@@ -335,6 +307,51 @@ void ANetTPSCharacter::MultiRPCReleasePistol_Implementation(AActor* pistolActor)
 {
 	DetachPistol(pistolActor);
 
+}
+
+void ANetTPSCharacter::ServerRPCFire_Implementation()
+{
+	// 총쏘기
+	FHitResult hitInfo;
+	FVector startPos = FollowCamera->GetComponentLocation();
+	FVector endPos = startPos + FollowCamera->GetForwardVector() * 10000;
+
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(this);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);
+	if (bHit)
+	{
+		// 맞은 대상이 상대방일 경우 데미지 처리
+		auto otherPlayer = Cast<ANetTPSCharacter>(hitInfo.GetActor());
+		if (otherPlayer)
+		{
+			otherPlayer->DamageProcess();
+		}
+	}
+
+	// 총알 제거
+	bulletCount--;
+	
+	MultiRPCFire(bHit, hitInfo);
+}
+
+void ANetTPSCharacter::MultiRPCFire_Implementation(bool bHit, const FHitResult& hitInfo)
+{
+	if (bHit)
+	{
+		// 맞은자리에 파티클효과 재생
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld()
+			, gunEffect, hitInfo.Location, FRotator());
+	}
+
+	if (mainUI)
+	{
+		mainUI->PopBullet(bulletCount);
+	}
+
+	// 총쏘기 애니메이션 재생
+	auto anim = Cast<UNetPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	anim->PlayFireAnimation();
 }
 
 //////////////////////////////////////////////////////////////////////////
