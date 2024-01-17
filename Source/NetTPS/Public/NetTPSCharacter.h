@@ -123,8 +123,10 @@ public:
 	UPROPERTY(EditAnywhere, Category="Bullet")
 	int32 maxBulletCount = 10;
 	// 남은 총알개수
+	//UPROPERTY(ReplicatedUsing=OnRep_BulletCount)
 	int32 bulletCount = maxBulletCount;
-
+	UFUNCTION()
+	void OnRep_BulletCount();
 // --------- 재장전 ---------
 public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
@@ -141,7 +143,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="HP")
 	float MaxHP = 3;
 	// 현재 체력
+	UPROPERTY(ReplicatedUsing=OnRep_HP)
 	float hp = MaxHP;
+	UFUNCTION()
+	void OnRep_HP();
 
 	__declspec(property(get=GetHP, put=SetHP))
 	float HP;
@@ -180,6 +185,13 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCFire();
 	UFUNCTION(NetMulticast, Reliable)
-	void MultiRPCFire(bool bHit, const FHitResult& hitInfo);
+	void MultiRPCFire(bool bHit, const FHitResult& hitInfo, const int bc);
+
+	// 재장전
+	UFUNCTION(Server, Reliable)
+	void ServerRPCReload();
+	UFUNCTION(Client, Reliable)
+	void ClientRPCReload();
+
 };
 
