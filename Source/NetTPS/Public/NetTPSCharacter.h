@@ -61,6 +61,8 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
+	virtual void PossessedBy(AController* NewController) override;
+
 	// To add mapping context
 	virtual void BeginPlay();
 
@@ -111,8 +113,8 @@ public:
 
 // ------- main ui ---------
 public:
-	UPROPERTY(EditDefaultsOnly, Category="UI")
-	TSubclassOf<class UMainUI> mainUIWidget;
+	/*UPROPERTY(EditDefaultsOnly, Category="UI")
+	TSubclassOf<class UMainUI> mainUIWidget;*/
 	UPROPERTY()
 	class UMainUI* mainUI;
 
@@ -159,9 +161,17 @@ public:
 	// 피격처리함수
 	void DamageProcess();
 
+	// 피격 카메라셰이크
+	UPROPERTY(EditDefaultsOnly, Category="Damage")
+	TSubclassOf<class UCameraShakeBase> damageCameraShake;
+
 // ------- 죽음처리 --------
 public:
+	//UPROPERTY(Replicated)
 	bool isDead = false;
+
+	// 죽음처리함수
+	void DieProcess();
 
 public:
 	virtual void Tick( float DeltaSeconds ) override;

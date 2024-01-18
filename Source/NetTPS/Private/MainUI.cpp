@@ -4,6 +4,9 @@
 #include "MainUI.h"
 #include <Components/Image.h>
 #include <Components/UniformGridPanel.h>
+#include <Components/HorizontalBox.h>
+#include "NetPlayerController.h"
+#include <Components/Button.h>
 
 void UMainUI::ShowCrosshair(bool isShow)
 {
@@ -35,4 +38,33 @@ void UMainUI::RemoveAllAmmo()
 		BulletPanel->RemoveChild(bulletWidget);
 	}*/
 	BulletPanel->ClearChildren();
+}
+
+void UMainUI::PlayDamageAnimation()
+{
+	PlayAnimation(DamageAnim);
+}
+
+void UMainUI::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	// 버튼 이벤트 등록
+	btn_retry->OnClicked.AddDynamic(this, &UMainUI::OnRetry);
+}
+
+void UMainUI::OnRetry()
+{
+	// Client 코드
+	// Sever 한테 리스폰 요청 하고싶다.
+	// 1. gameoverui hidden
+	GameoverUI->SetVisibility(ESlateVisibility::Hidden);
+	// 2. Mouse visibility
+	auto pc = Cast<ANetPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (pc)
+	{
+		pc->SetShowMouseCursor(false);
+		// 3. Server 한테 Respawn 요청
+		pc->ServerRPCRespawnPlayer();
+	}
 }

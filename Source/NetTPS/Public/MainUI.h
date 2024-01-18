@@ -38,4 +38,23 @@ public:
 	// -------------- 체력 -------------
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="HP")
 	float hp = 1.0f;
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidgetAnim), Transient)
+	class UWidgetAnimation* DamageAnim;
+	// 피격처리 애니메이션 재생
+	void PlayDamageAnimation();
+
+// --------- 죽음 UI ------------
+public:
+	UPROPERTY(BlueprintReadWrite, Category="UI", meta=(BindWidget))
+	class UHorizontalBox* GameoverUI;
+	UPROPERTY(BlueprintReadWrite, Category="UI", meta=(BindWidget))
+	class UButton* btn_retry;
+	UPROPERTY(BlueprintReadWrite, Category="UI", meta=(BindWidget))
+	class UButton* btn_exit;
+
+public:
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+	void OnRetry();
 };

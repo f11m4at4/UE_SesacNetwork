@@ -13,10 +13,12 @@
 #include <../../../../../../../Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h>
 #include "NetPlayerAnimInstance.h"
 #include "MainUI.h"
-#include <../../../../../../../Source/Runtime/UMG/Public/Components/WidgetComponent.h>
+#include <Components/WidgetComponent.h>
 #include "HealthBar.h"
 #include "NetTPS.h"
-#include <../../../../../../../Source/Runtime/Engine/Public/Net/UnrealNetwork.h>
+#include <Net/UnrealNetwork.h>
+#include <Components/HorizontalBox.h>
+#include "NetPlayerController.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -75,11 +77,26 @@ ANetTPSCharacter::ANetTPSCharacter()
 	SetReplicateMovement(true);
 }
 
+void ANetTPSCharacter::PossessedBy(AController* NewController)
+{
+	PRINTLOG(TEXT("Begin, Controller : %s"), Controller ? TEXT("Valid") : TEXT("Invalid"));
+	Super::PossessedBy(NewController);
+
+	// 내가 제어중인지 (메인 플레이어인지) 체크
+	if (IsLocallyControlled())
+	{
+		// UI 초기화
+		InitUIWidget();
+	}
+	PRINTLOG(TEXT("End, Controller : %s"), Controller ? TEXT("Valid") : TEXT("Invalid"));
+}
+
 void ANetTPSCharacter::BeginPlay()
 {
+	PRINTLOG(TEXT("Begin, Controller : %s"), Controller ? TEXT("Valid") : TEXT("Invalid"));
 	// Call the base class  
 	Super::BeginPlay();
-
+	
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -89,7 +106,14 @@ void ANetTPSCharacter::BeginPlay()
 		}
 	}
 
-	InitUIWidget();
+	// Client 창에서 실행되는 코드여야 한다.
+	// 내가 제어중이고, Client 인지 확인
+	if (IsLocallyControlled() && HasAuthority() == false)
+	{
+		InitUIWidget();
+	}
+
+	PRINTLOG(TEXT("End, Controller : %s"), Controller ? TEXT("Valid") : TEXT("Invalid"));
 
 }
 
@@ -98,7 +122,7 @@ void ANetTPSCharacter::TakePistol(const FInputActionValue& value)
 	// 총을 소유하고 있지 않다면 일정범위 안에 있는 총을 잡는다.
 	// 필요속성 : 총소유여부, 잡을 수 있는 범위
 	// 1. 총을 소유하고있지 않으니까
-	if (bHasPistol == true)
+	if (bHasPistol == true || isDead)
 	{
 		return;
 	}
@@ -121,7 +145,7 @@ void ANetTPSCharacter::AttachPistol(AActor* pistolActor)
 void ANetTPSCharacter::ReleasePistol(const FInputActionValue& value)
 {
 	// 총을 잡고있다면 놓고싶다.
-	if (bHasPistol == false || isReloading)
+	if (bHasPistol == false || isReloading || IsLocallyControlled() == false)
 	{
 		return;
 	}
@@ -144,7 +168,7 @@ void ANetTPSCharacter::DetachPistol(AActor* pistolActor)
 void ANetTPSCharacter::Fire(const FInputActionValue& value)
 {
 	// 총을 소유하고 있지 않다면 처리하지 않는다.
-	if (bHasPistol == false || bulletCount <= 0 || isReloading)
+	if (bHasPistol == false || bulletCount <= 0 || isReloading || isDead)
 	{
 		return;
 	}
@@ -155,17 +179,27 @@ void ANetTPSCharacter::Fire(const FInputActionValue& value)
 void ANetTPSCharacter::InitUIWidget()
 {
 	// Player 아니면 처리하지 않도록 하자
-	auto pc = Cast<APlayerController>(Controller);
+	auto pc = Cast<ANetPlayerController>(Controller);
 	if (pc == nullptr)
 	{
 		return;
 	}
 
-	if (mainUIWidget)
+
+	if (pc->mainUIWidget)
 	{
-		mainUI = Cast<UMainUI>(CreateWidget(GetWorld(), mainUIWidget));
-		mainUI->AddToViewport();
+		// mainui 가 없을 때만 해주자
+		if (pc->mainUI == nullptr)
+		{
+			pc->mainUI = Cast<UMainUI>(CreateWidget(GetWorld(), pc->mainUIWidget));
+
+			pc->mainUI->AddToViewport();
+		}
+		mainUI = pc->mainUI;
 		mainUI->ShowCrosshair(false);
+
+		// 총알 모두 제거
+		mainUI->RemoveAllAmmo();
 
 		// 총알 UI 세팅
 		bulletCount = maxBulletCount;
@@ -205,11 +239,30 @@ void ANetTPSCharacter::InitAmmoUI()
 
 void ANetTPSCharacter::OnRep_HP()
 {
+	// 죽음처리
+	if (HP <= 0)
+	{
+		isDead = true;
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCharacterMovement()->DisableMovement();
+		// 죽었으니까 총은 놓자
+		ReleasePistol(FInputActionValue());
+	}
+
 	// UI 에 값 할당
 	float percent = hp / MaxHP;
 	if (mainUI)
 	{
 		mainUI->hp = percent;
+		// 피격처리효과
+		mainUI->PlayDamageAnimation();
+
+		// 카메라셰이크효과 재생
+		if (damageCameraShake)
+		{
+			auto pc = Cast<APlayerController>(Controller);
+			pc->ClientStartCameraShake(damageCameraShake);
+		}
 	}
 	else
 	{
@@ -234,11 +287,18 @@ void ANetTPSCharacter::DamageProcess()
 {
 	HP--;
 
-	// 죽음처리
-	if (HP <= 0)
-	{
-		isDead = true;
-	}
+	
+}
+
+void ANetTPSCharacter::DieProcess()
+{
+	GetFollowCamera()->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
+
+	auto pc = Cast<APlayerController>(Controller);
+	pc->SetShowMouseCursor(true);
+
+	// Die ui표시
+	mainUI->GameoverUI->SetVisibility(ESlateVisibility::Visible);
 }
 
 void ANetTPSCharacter::Tick(float DeltaSeconds)
@@ -431,6 +491,8 @@ void ANetTPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 }
 
+
+
 void ANetTPSCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -473,5 +535,6 @@ void ANetTPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(ANetTPSCharacter, bHasPistol);
 	DOREPLIFETIME(ANetTPSCharacter, hp);
+	//DOREPLIFETIME(ANetTPSCharacter, isDead);
 	//DOREPLIFETIME(ANetTPSCharacter, bulletCount);
 }
