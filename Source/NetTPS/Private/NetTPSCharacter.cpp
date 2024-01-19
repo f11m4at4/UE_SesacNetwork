@@ -198,6 +198,9 @@ void ANetTPSCharacter::InitUIWidget()
 		mainUI = pc->mainUI;
 		mainUI->ShowCrosshair(false);
 
+		hp = MaxHP;
+		float percent = hp / MaxHP;
+		mainUI->hp = percent;
 		// 총알 모두 제거
 		mainUI->RemoveAllAmmo();
 
@@ -216,6 +219,13 @@ void ANetTPSCharacter::InitUIWidget()
 	}
 }
 
+
+void ANetTPSCharacter::PostNetInit()
+{
+	PRINTLOG(TEXT("Begin"));
+	Super::PostNetInit();
+	PRINTLOG(TEXT("End"));
+}
 
 void ANetTPSCharacter::ReloadPistol(const FInputActionValue& value)
 {

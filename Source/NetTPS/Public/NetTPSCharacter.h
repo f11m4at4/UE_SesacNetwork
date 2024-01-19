@@ -120,6 +120,8 @@ public:
 
 	void InitUIWidget();
 
+	// Client 에서만 호출
+	virtual void PostNetInit() override;
 public:
 	// 최대 총알개수
 	UPROPERTY(EditAnywhere, Category="Bullet")

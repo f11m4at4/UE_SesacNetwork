@@ -26,6 +26,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCRespawnPlayer();
 
+	// °üÀüÀÚ server rpc
+	UFUNCTION(Server, Reliable)
+	void ServerRPCChangeToSpectator();
+
 // ------- main ui ---------
 public:
 	UPROPERTY(EditDefaultsOnly, Category="UI")

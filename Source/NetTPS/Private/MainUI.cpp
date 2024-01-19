@@ -65,6 +65,7 @@ void UMainUI::OnRetry()
 	{
 		pc->SetShowMouseCursor(false);
 		// 3. Server 한테 Respawn 요청
-		pc->ServerRPCRespawnPlayer();
+		//pc->ServerRPCRespawnPlayer();
+		pc->ServerRPCChangeToSpectator();
 	}
 }
