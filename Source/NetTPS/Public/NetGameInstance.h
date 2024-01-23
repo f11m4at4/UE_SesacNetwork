@@ -7,9 +7,30 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "NetGameInstance.generated.h"
 
-/**
- * 
- */
+// 방정보(세션) 기록할 구조체
+USTRUCT(BlueprintType)
+struct FSessionInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FString roomName;
+	UPROPERTY(BlueprintReadOnly)
+	FString hostName;
+	UPROPERTY(BlueprintReadOnly)
+	FString playerCount;
+	UPROPERTY(BlueprintReadOnly)
+	int32 pingSpeed;
+	UPROPERTY(BlueprintReadOnly)
+	int32 index;
+
+	inline FString ToString()
+	{
+		return FString::Printf(TEXT("[%d] %s : %s - %s, %d ms"), index, *roomName, *hostName, *playerCount, pingSpeed);
+	}
+};
+
+
 UCLASS()
 class NETTPS_API UNetGameInstance : public UGameInstance
 {

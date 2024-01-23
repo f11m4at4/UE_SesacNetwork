@@ -7,9 +7,10 @@
 #include "NetTPS.h"
 #include <Online/OnlineSessionNames.h>
 
+
 UNetGameInstance::UNetGameInstance()
 {
-
+	
 }
 
 void UNetGameInstance::Init()
@@ -107,4 +108,32 @@ void UNetGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
 	// 세션검색결과
 	auto results = sessionSearch->SearchResults;
 	PRINTLOG(TEXT("Search Result Count : %d"), results.Num());
+
+	for (int i=0;i<results.Num();i++)
+	{
+		auto sr = results[i];
+		if (sr.IsValid() == false)
+		{
+			continue;
+		}
+
+		FSessionInfo sessionInfo;
+		sessionInfo.index = i;
+
+		// 1. 방이름
+		sr.Session.SessionSettings.Get(FName("ROOM_NAME"), sessionInfo.roomName);
+		// 2. 호스트이름
+		sr.Session.SessionSettings.Get(FName("HOST_NAME"), sessionInfo.hostName);
+		// pc 소유자 이름
+		FString ownerName = sr.Session.OwningUserName;
+		// 3. 플레이어수 (최대가능수 - 현재입장가능수)
+		int32 maxPlayerCount = sr.Session.SessionSettings.NumPublicConnections;
+		int32 currentPlayerCount = maxPlayerCount - sr.Session.NumOpenPublicConnections;
+
+		sessionInfo.playerCount = FString::Printf(TEXT("(%d/%d)"), currentPlayerCount, maxPlayerCount);
+		// 4. 핑정보
+		sessionInfo.pingSpeed = sr.PingInMs;
+
+		PRINTLOG(TEXT("%s"), *sessionInfo.ToString());
+	}
 }

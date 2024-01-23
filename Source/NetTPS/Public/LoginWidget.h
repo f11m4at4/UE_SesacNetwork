@@ -34,4 +34,24 @@ public:
 	// 슬라이더값 변경시 호출되는 콜백함수
 	UFUNCTION()
 	void OnValueChanged(float value);
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(BindWidget))
+	class UWidgetSwitcher* WidgetSwitcher;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(BindWidget))
+	class UButton* btn_createSession;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(BindWidget))
+	class UButton* btn_findSession;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(BindWidget))
+	class UButton* btn_back;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(BindWidget))
+	class UButton* btn_back_1;
+
+
+	UFUNCTION()
+	void SwitchCreatePanel();
+	UFUNCTION()
+	void SwitchFindPanel();
+	UFUNCTION()
+	void BackToMain();
 };
