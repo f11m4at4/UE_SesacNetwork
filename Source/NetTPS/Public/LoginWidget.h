@@ -54,4 +54,29 @@ public:
 	void SwitchFindPanel();
 	UFUNCTION()
 	void BackToMain();
+
+public:
+	// --------- 세션슬롯 ----------
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	class UScrollBox* scroll_roomList;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	class UButton* btn_find;
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	class UTextBlock* txt_findingMsg;
+
+	// 세션슬롯 위젯
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class USessionSlotWidget> sessionSlotWidget;
+
+	UFUNCTION()
+	void AddSlotWidget(const struct FSessionInfo& sessionInfo);
+
+	// Find 버튼 클릭했을 때 호출될 콜백
+	UFUNCTION()
+	void OnClickedFindSession();
+
+	// 방찾기 상태 이벤트 콜백
+	UFUNCTION()
+	void OnChangeButtonEnabled(bool bIsSearching);
+
 };

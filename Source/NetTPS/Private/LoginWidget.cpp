@@ -8,12 +8,21 @@
 #include <Components/Slider.h>
 #include <Components/TextBlock.h>
 #include <Components/WidgetSwitcher.h>
+#include "SessionSlotWidget.h"
+#include <Components/ScrollBox.h>
 
 void ULoginWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
 	gi = Cast<UNetGameInstance>(GetWorld()->GetGameInstance());
+	// 슬롯추가 이벤트 콜백 등록
+	gi->onSearchCompleted.AddDynamic(this, &ULoginWidget::AddSlotWidget);
+	// 방목록 검색 중인지 여부 이벤트 콜백 등록
+	gi->onSearchState.AddDynamic(this, &ULoginWidget::OnChangeButtonEnabled);
+
+
+	btn_find->OnClicked.AddDynamic(this, &ULoginWidget::OnClickedFindSession);
 
 	btn_createRoom->OnClicked.AddDynamic(this, &ULoginWidget::CreateRoom);
 	slider_playerCount->OnValueChanged.AddDynamic(this, &ULoginWidget::OnValueChanged);
@@ -50,9 +59,46 @@ void ULoginWidget::SwitchCreatePanel()
 void ULoginWidget::SwitchFindPanel()
 {
 	WidgetSwitcher->SetActiveWidgetIndex(2);
+	// 방목록 검색
+	OnClickedFindSession();
 }
 
 void ULoginWidget::BackToMain()
 {
 	WidgetSwitcher->SetActiveWidgetIndex(0);
+}
+
+void ULoginWidget::AddSlotWidget(const struct FSessionInfo& sessionInfo)
+{
+	// 위젯 생성
+	auto slot = CreateWidget<USessionSlotWidget>(this, sessionSlotWidget);
+	// 데이터 할당
+	slot->Set(sessionInfo);
+	// 스크롤박스에 추가
+	scroll_roomList->AddChild(slot);
+}
+
+void ULoginWidget::OnClickedFindSession()
+{
+	// 방목록 리셋
+	scroll_roomList->ClearChildren();
+
+	// 방목록 검색
+	if (gi)
+	{
+		gi->FindOtherSessions();
+	}
+}
+
+void ULoginWidget::OnChangeButtonEnabled(bool bIsSearching)
+{
+	btn_find->SetIsEnabled(!bIsSearching);
+	if (bIsSearching)
+	{
+		txt_findingMsg->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		txt_findingMsg->SetVisibility(ESlateVisibility::Hidden);
+	}
 }

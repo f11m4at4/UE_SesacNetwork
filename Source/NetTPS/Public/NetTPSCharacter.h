@@ -88,7 +88,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="Pistol")
 	float distanceToGun = 200;
 	// 소유중인 총
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	AActor* ownedPistol = nullptr;
 
 	// 총잡기 처리할 함수

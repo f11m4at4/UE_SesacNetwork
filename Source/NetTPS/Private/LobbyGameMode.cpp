@@ -5,5 +5,5 @@
 
 ALobbyGameMode::ALobbyGameMode()
 {
-	bUseSeamlessTravel = true;
+	//bUseSeamlessTravel = true;
 }

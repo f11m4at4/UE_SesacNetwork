@@ -224,6 +224,11 @@ void ANetTPSCharacter::PostNetInit()
 {
 	PRINTLOG(TEXT("Begin"));
 	Super::PostNetInit();
+
+	if (bHasPistol && ownedPistol)
+	{
+		AttachPistol(ownedPistol);
+	}
 	PRINTLOG(TEXT("End"));
 }
 
@@ -545,6 +550,7 @@ void ANetTPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(ANetTPSCharacter, bHasPistol);
 	DOREPLIFETIME(ANetTPSCharacter, hp);
+	DOREPLIFETIME(ANetTPSCharacter, ownedPistol);
 	//DOREPLIFETIME(ANetTPSCharacter, isDead);
 	//DOREPLIFETIME(ANetTPSCharacter, bulletCount);
 }
