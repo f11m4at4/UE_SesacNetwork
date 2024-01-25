@@ -53,11 +53,23 @@ void ULoginWidget::OnValueChanged(float value)
 
 void ULoginWidget::SwitchCreatePanel()
 {
+	FString userName = edit_userName->GetText().ToString();
+	if (userName.IsEmpty() == false)
+	{
+		gi->mySessionName = userName;
+	}
+
 	WidgetSwitcher->SetActiveWidgetIndex(1);
 }
 
 void ULoginWidget::SwitchFindPanel()
 {
+	FString userName = edit_userName->GetText().ToString();
+	if (userName.IsEmpty() == false)
+	{
+		gi->mySessionName = userName;
+	}
+
 	WidgetSwitcher->SetActiveWidgetIndex(2);
 	// 방목록 검색
 	OnClickedFindSession();

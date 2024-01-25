@@ -79,4 +79,6 @@ public:
 	UFUNCTION()
 	void OnChangeButtonEnabled(bool bIsSearching);
 
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget))
+	class UEditableText* edit_userName;
 };

@@ -7,6 +7,9 @@
 #include <Components/HorizontalBox.h>
 #include "NetPlayerController.h"
 #include <Components/Button.h>
+#include <../../../../../../../Source/Runtime/Engine/Classes/GameFramework/GameStateBase.h>
+#include <../../../../../../../Source/Runtime/Engine/Classes/GameFramework/PlayerState.h>
+#include <../../../../../../../Source/Runtime/UMG/Public/Components/TextBlock.h>
 
 void UMainUI::ShowCrosshair(bool isShow)
 {
@@ -68,4 +71,19 @@ void UMainUI::OnRetry()
 		//pc->ServerRPCRespawnPlayer();
 		pc->ServerRPCChangeToSpectator();
 	}
+}
+
+void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	// 다른 사용자들의 GameInstance 에 있는 세션네임을 가져오고 싶다.
+	auto playerArr = GetWorld()->GetGameState()->PlayerArray;
+	FString name;
+	for (auto pState : playerArr)
+	{
+		name.Append(FString::Printf(TEXT("%s\n"), *pState->GetPlayerName()));
+	}
+	
+	txt_users->SetText(FText::FromString(name));
 }

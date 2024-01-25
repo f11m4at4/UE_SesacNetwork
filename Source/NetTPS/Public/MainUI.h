@@ -57,4 +57,10 @@ public:
 
 	UFUNCTION()
 	void OnRetry();
+
+// -------- 사용자 목록 -----------
+	UPROPERTY(meta=(BindWidget))
+	class UTextBlock* txt_users;
+
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 };
