@@ -19,6 +19,7 @@
 #include <Net/UnrealNetwork.h>
 #include <Components/HorizontalBox.h>
 #include "NetPlayerController.h"
+#include "NetPlayerState.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -414,6 +415,10 @@ void ANetTPSCharacter::ServerRPCFire_Implementation()
 		if (otherPlayer)
 		{
 			otherPlayer->DamageProcess();
+
+			// 상대편 맞췄을 때 점수 1점씩 증가
+			auto ps = GetPlayerState<ANetPlayerState>();
+			ps->SetScore(ps->GetScore() + 1);
 		}
 	}
 
@@ -470,6 +475,34 @@ void ANetTPSCharacter::ClientRPCReload_Implementation()
 	isReloading = false;
 }
 
+void ANetTPSCharacter::StartVoiceChat()
+{
+	auto pc = GetController<ANetPlayerController>();
+	pc->StartTalking();
+}
+
+void ANetTPSCharacter::StopVoiceChat()
+{
+	auto pc = GetController<ANetPlayerController>();
+	pc->StopTalking();
+}
+
+void ANetTPSCharacter::ServerRPC_SendMsg_Implementation(const FString& msg)
+{
+	// 모든 클라이언트들한테 메시지 전달
+	MultiRPC_SendMsg(msg);
+}
+
+void ANetTPSCharacter::MultiRPC_SendMsg_Implementation(const FString& msg)
+{
+	// 플레이어컨트롤러 찾아오기
+	auto pc = Cast<ANetPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (pc)
+	{
+		pc->mainUI->ReceiveMsg(msg);
+	}
+}
+
 void ANetTPSCharacter::OnRep_BulletCount()
 {
 	if (mainUI)
@@ -499,6 +532,9 @@ void ANetTPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(releasePistolActoin, ETriggerEvent::Started, this, &ANetTPSCharacter::ReleasePistol);
 		EnhancedInputComponent->BindAction(fireActoin, ETriggerEvent::Started, this, &ANetTPSCharacter::Fire);
 		EnhancedInputComponent->BindAction(reloadActoin, ETriggerEvent::Started, this, &ANetTPSCharacter::ReloadPistol);
+
+		EnhancedInputComponent->BindAction(voiceActoin, ETriggerEvent::Started, this, &ANetTPSCharacter::StartVoiceChat);
+		EnhancedInputComponent->BindAction(voiceActoin, ETriggerEvent::Completed, this, &ANetTPSCharacter::StopVoiceChat);
 	}
 	else
 	{

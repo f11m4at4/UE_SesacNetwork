@@ -4,6 +4,8 @@
 #include "NetPlayerController.h"
 #include "NetTPSGameMode.h"
 #include <GameFramework/SpectatorPawn.h>
+#include <../../../../../../../Source/Runtime/Engine/Classes/GameFramework/PlayerStart.h>
+#include <../../../../../../../Source/Runtime/Engine/Public/EngineUtils.h>
 
 void ANetPlayerController::BeginPlay()
 {
@@ -27,6 +29,8 @@ void ANetPlayerController::ServerRPCRespawnPlayer_Implementation()
 	player->Destroy();
 	// 4. respawn
 	gm->RestartPlayer(this);
+	
+	//gm->RestartPlayer(this);
 }
 
 void ANetPlayerController::ServerRPCChangeToSpectator_Implementation()

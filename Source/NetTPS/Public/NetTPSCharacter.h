@@ -205,5 +205,20 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientRPCReload();
 
+
+public:
+	// ------------- voice chat -------------
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* voiceActoin;
+
+	void StartVoiceChat();
+	void StopVoiceChat();
+
+public:
+	// ------------- chat -------------
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_SendMsg(const FString& msg);
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiRPC_SendMsg(const FString& msg);
 };
 

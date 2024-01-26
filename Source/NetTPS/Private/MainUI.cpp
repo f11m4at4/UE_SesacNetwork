@@ -10,6 +10,11 @@
 #include <../../../../../../../Source/Runtime/Engine/Classes/GameFramework/GameStateBase.h>
 #include <../../../../../../../Source/Runtime/Engine/Classes/GameFramework/PlayerState.h>
 #include <../../../../../../../Source/Runtime/UMG/Public/Components/TextBlock.h>
+#include <../../../../../../../Source/Runtime/UMG/Public/Components/EditableText.h>
+#include "NetTPSCharacter.h"
+#include "ChatWidget.h"
+#include <../../../../../../../Source/Runtime/UMG/Public/Components/ScrollBox.h>
+#include "NetTPS.h"
 
 void UMainUI::ShowCrosshair(bool isShow)
 {
@@ -54,6 +59,7 @@ void UMainUI::NativeConstruct()
 
 	// 버튼 이벤트 등록
 	btn_retry->OnClicked.AddDynamic(this, &UMainUI::OnRetry);
+	btn_send->OnClicked.AddDynamic(this, &UMainUI::SendMsg);
 }
 
 void UMainUI::OnRetry()
@@ -82,8 +88,34 @@ void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	FString name;
 	for (auto pState : playerArr)
 	{
-		name.Append(FString::Printf(TEXT("%s\n"), *pState->GetPlayerName()));
+		name.Append(FString::Printf(TEXT("%s : %d\n"), *pState->GetPlayerName(), (int32)pState->GetScore()));
 	}
 	
 	txt_users->SetText(FText::FromString(name));
+}
+
+void UMainUI::SendMsg()
+{
+	// 메시지를 서버로 전송하고 싶다.
+	FString msg = edit_input->GetText().ToString();
+	edit_input->SetText(FText::GetEmpty());
+	if (msg.IsEmpty() == false)
+	{
+		// 1. NetPlayerController 가 필요하다.
+		auto pc = Cast<ANetPlayerController>(GetWorld()->GetFirstPlayerController());
+		// 2. NetTPSCharacter 가 필요
+		auto player = pc->GetPawn<ANetTPSCharacter>();
+		// 3. 서버로 전송하고 싶다.
+		player->ServerRPC_SendMsg(msg);
+	}
+}
+
+void UMainUI::ReceiveMsg(const FString& msg)
+{
+	// 메시지 받아서 ChatWidget 에 내용 넣어주기
+	auto msgWidget = CreateWidget<UChatWidget>(GetWorld(), chatWidget);
+	msgWidget->txt_msg->SetText(FText::FromString(msg));
+	// 스크롤박스에 추가해주기
+	scroll_msgList->AddChild(msgWidget);
+	scroll_msgList->ScrollToEnd();
 }

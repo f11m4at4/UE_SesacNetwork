@@ -13,6 +13,8 @@ class ANetTPSGameMode : public AGameModeBase
 
 public:
 	ANetTPSGameMode();
+
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 };
 
 

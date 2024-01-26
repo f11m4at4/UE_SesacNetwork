@@ -63,4 +63,22 @@ public:
 	class UTextBlock* txt_users;
 
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+// ----------------- Ã¤ÆÃ ----------------
+public:
+	UPROPERTY(meta=(BindWidget))
+	class UScrollBox* scroll_msgList;
+	UPROPERTY(meta=(BindWidget))
+	class UEditableText* edit_input;
+	UPROPERTY(meta=(BindWidget))
+	class UButton* btn_send;
+
+	// ChatWidet class
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UChatWidget> chatWidget;
+
+	UFUNCTION()
+	void SendMsg();
+
+	void ReceiveMsg(const FString& msg);
 };
