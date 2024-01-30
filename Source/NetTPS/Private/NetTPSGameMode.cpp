@@ -14,6 +14,8 @@ ANetTPSGameMode::ANetTPSGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+
+	bUseSeamlessTravel = true;
 }
 
 // GameMode 가 플레이어를 스폰하려고 할때 어느 PlayerStart 위치에서 할지

@@ -81,7 +81,7 @@ void UNetGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSucce
 	// 방에 들어가도록 처리하자
 	if (bWasSuccessful)
 	{
-		GetWorld()->ServerTravel(TEXT("/Game/Net/Maps/BattleMap?listen"));
+		GetWorld()->ServerTravel(TEXT("/Game/Net/Maps/BattleMap?listen"), true);
 	}
 }
 

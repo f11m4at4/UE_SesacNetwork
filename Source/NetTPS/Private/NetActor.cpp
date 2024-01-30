@@ -28,7 +28,6 @@ void ANetActor::BeginPlay()
 	mat = meshComp->CreateDynamicMaterialInstance(0);
 	if (HasAuthority())
 	{
-		FTimerHandle handle;
 		GetWorldTimerManager().SetTimer(handle, FTimerDelegate::CreateLambda([&]
 			{
 				FLinearColor matColor = FLinearColor(FMath::RandRange(0, 1), FMath::RandRange(0, 1), FMath::RandRange(0, 1), 1);
@@ -70,6 +69,11 @@ void ANetActor::MultiRPC_ChangeColor_Implementation(const FLinearColor newColor)
 	{
 		mat->SetVectorParameterValue(TEXT("FloorColor"), newColor);
 	}
+}
+
+void ANetActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorldTimerManager().ClearTimer(handle);
 }
 
 // Called every frame

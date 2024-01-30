@@ -63,5 +63,7 @@ public:
 	// 모든 유저들이 처리할 NetMulticast RPC 함수
 	UFUNCTION(NetMulticast, Unreliable)
 	void MultiRPC_ChangeColor(const FLinearColor newColor);
+	FTimerHandle handle;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 };
